@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35027.167
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoreApp.Core", "StoreApp.Core\StoreApp.Core.csproj", "{FEF3B68D-DDC6-4068-B261-BF79EF69B474}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StoreApp.Core", "StoreApp.Core\StoreApp.Core.csproj", "{FEF3B68D-DDC6-4068-B261-BF79EF69B474}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoreApp.Tests", "StoreApp.Tests\StoreApp.Tests.csproj", "{FCDEED31-C524-4A28-A7FE-DD2F47849248}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{FEF3B68D-DDC6-4068-B261-BF79EF69B474}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FEF3B68D-DDC6-4068-B261-BF79EF69B474}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FEF3B68D-DDC6-4068-B261-BF79EF69B474}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCDEED31-C524-4A28-A7FE-DD2F47849248}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCDEED31-C524-4A28-A7FE-DD2F47849248}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCDEED31-C524-4A28-A7FE-DD2F47849248}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCDEED31-C524-4A28-A7FE-DD2F47849248}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

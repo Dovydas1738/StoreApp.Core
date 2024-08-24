@@ -23,10 +23,10 @@ namespace StoreApp.Core.Services
             {
                 if (product.ProductName == p.ProductName)
                 {
-                    
+                    p.AmountInStorage += product.AmountInStorage;
+                    return;
                 }
             }
-
             await _productRepository.AddProduct(product);
         }
 
@@ -37,17 +37,41 @@ namespace StoreApp.Core.Services
 
         public async Task<Product> GetProductById(int productId)
         {
-            return await _productRepository.GetProductById(productId);
+            Product foundProduct = await _productRepository.GetProductById(productId);
+            if (foundProduct != null)
+            {
+                return foundProduct;
+            }
+            else
+            {
+                throw new Exception("No product found.");
+            }
         }
 
         public async Task RemoveProductById(int productId)
         {
-            await _productRepository.RemoveProductById(productId);
+            Product foundProduct = await _productRepository.GetProductById(productId);
+            if (foundProduct != null)
+            {
+                await _productRepository.RemoveProductById(productId);
+            }
+            else
+            {
+                throw new Exception("No product found.");
+            }
         }
 
         public async Task UpdateProduct(Product product)
         {
-            await _productRepository.UpdateProduct(product);
+            Product foundProduct = await _productRepository.GetProductById(product.ProductId);
+            if (foundProduct != null)
+            {
+                await _productRepository.UpdateProduct(product);
+            }
+            else
+            {
+                throw new Exception("No product found.");
+            }
         }
     }
 }
