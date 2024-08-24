@@ -19,44 +19,107 @@ namespace StoreApp.Core.Services
             _userMongoCacheRepository = userMongoCacheRepository;
         }
 
-        public Task AddBuyer(Buyer buyer)
+        public async Task AddBuyer(Buyer buyer)
         {
-            throw new NotImplementedException();
+            await _userMongoCacheRepository.AddBuyer(buyer);
+            await _userRepository.AddBuyer(buyer);
         }
 
-        public Task AddSeller(Seller seller)
+        public async Task AddSeller(Seller seller)
         {
-            throw new NotImplementedException();
+            await _userMongoCacheRepository.AddSeller(seller);
+            await _userRepository.AddSeller(seller);
         }
 
-        public Task<List<Buyer>> GetAllBuyers()
+        public async Task<List<Buyer>> GetAllBuyers()
         {
-            throw new NotImplementedException();
+            if (_userMongoCacheRepository.GetAllBuyers().Result.Count < _userRepository.GetAllBuyers().Result.Count)
+            {
+                //add range i guess, arba replace or some shit
+            }
+
+            return await _userMongoCacheRepository.GetAllBuyers();
         }
 
-        public Task<List<Seller>> GetAllSellers()
+        public async Task<List<Seller>> GetAllSellers()
         {
-            throw new NotImplementedException();
+            if (_userMongoCacheRepository.GetAllSellers().Result.Count < _userRepository.GetAllSellers().Result.Count)
+            {
+                //add range i guess
+            }
+
+            return await _userMongoCacheRepository.GetAllSellers();
         }
 
-        public Task<Buyer> GetBuyerById(int buyerId)
+        public async Task<Buyer> GetBuyerById(int buyerId)
         {
-            throw new NotImplementedException();
+            Buyer foundBuyer = await _userMongoCacheRepository.GetBuyerById(buyerId);
+
+            if (foundBuyer == null)
+            {
+                Buyer foundBuyer2 = await _userRepository.GetBuyerById(buyerId);
+
+                if (foundBuyer2 == null)
+                {
+                    throw new Exception("No buyer found");
+                }
+                else
+                {
+                    await _userMongoCacheRepository.AddBuyer(foundBuyer2);
+                }
+
+                return await _userMongoCacheRepository.GetBuyerById(buyerId);
+            }
+            return foundBuyer;
         }
 
-        public Task<Seller> GetSellerById(int sellerId)
+        public async Task<Seller> GetSellerById(int sellerId)
         {
-            throw new NotImplementedException();
+            Seller foundSeller = await _userMongoCacheRepository.GetSellerById(sellerId);
+
+            if (foundSeller == null)
+            {
+                Seller foundSeller2 = await _userRepository.GetSellerById(sellerId);
+
+                if (foundSeller2 == null)
+                {
+                    throw new Exception("No seller found");
+                }
+                else
+                {
+                    await _userMongoCacheRepository.AddSeller(foundSeller2);
+                }
+
+                return await _userMongoCacheRepository.GetSellerById(sellerId);
+            }
+            return foundSeller;
         }
 
-        public Task RemoveBuyerById(int buyerId)
+        public async Task RemoveBuyerById(int buyerId)
         {
-            throw new NotImplementedException();
+            Buyer foundBuyer = await _userMongoCacheRepository.GetBuyerById(buyerId);
+            Buyer foundBuyer2 = await _userRepository.GetBuyerById(buyerId);
+
+            if (foundBuyer == null && foundBuyer2 == null)
+            {
+                throw new Exception("No buyer found");
+            }
+            await _userRepository.RemoveBuyerById(buyerId);
+            await _userMongoCacheRepository.RemoveBuyerById(buyerId);
         }
 
-        public Task RemoveSellerById(int sellerId)
+        public async Task RemoveSellerById(int sellerId)
         {
-            throw new NotImplementedException();
+            Seller foundSeller = await _userMongoCacheRepository.GetSellerById(sellerId);
+            Seller foundSeller2 = await _userRepository.GetSellerById(sellerId);
+
+            if (foundSeller == null && foundSeller2 == null)
+            {
+                throw new Exception("No buyer found");
+            }
+            await _userRepository.RemoveSellerById(sellerId);
+            await _userMongoCacheRepository.RemoveSellerById(sellerId);
+
         }
 
         public Task UpdateBuyer(Buyer buyer)

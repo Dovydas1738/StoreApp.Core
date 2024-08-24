@@ -9,7 +9,7 @@ namespace StoreApp.Tests
 {
     public class UnitTests
     {
-        //product tests
+        // Product tests
 
         [Fact]
         public async Task Add_Product_Success_Test()
@@ -408,6 +408,9 @@ namespace StoreApp.Tests
 
             await Assert.ThrowsAsync<Exception>(() => productService.UpdateProduct(productUpdate));
         }
+
+        // User tests
+
 
     }
 }
