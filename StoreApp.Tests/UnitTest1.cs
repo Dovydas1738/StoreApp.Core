@@ -4,6 +4,7 @@ using StoreApp.Core.Repositories;
 using StoreApp.Core.Services;
 using StoreApp.Core.Enums;
 using Moq;
+using System;
 
 namespace StoreApp.Tests
 {
@@ -74,7 +75,6 @@ namespace StoreApp.Tests
 
             var productList = new List<Product> { product, product2 };
             _productRepository.Setup(x => x.GetAllProducts()).ReturnsAsync(productList);
-            int newAmount = 6;
 
             // Act
             await productService.AddProduct(product);
@@ -410,6 +410,170 @@ namespace StoreApp.Tests
         }
 
         // User tests
+
+        [Fact]
+        public async Task Add_Buyer_Success_Test()
+        {
+            // Arrange
+            Mock<IUserRepository> _userRepository = new Mock<IUserRepository>();
+            Mock<IMongoCacheRepository> _mongoRepository = new Mock<IMongoCacheRepository>();
+            IUserService userService = new UserService(_userRepository.Object, _mongoRepository.Object);
+
+            Buyer buyer = new Buyer
+            {
+                BuyerId = 1,
+                Name = "Test",
+                Surname = "TestSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                IsInLoyaltyProgram = true,
+            };
+
+            Buyer buyer2 = new Buyer
+            {
+                BuyerId = 2,
+                Name = "Test2",
+                Surname = "TestSurname2",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                IsInLoyaltyProgram = false,
+            };
+
+            var buyerList = new List<Buyer> { buyer };
+            _userRepository.Setup(x => x.GetAllBuyers()).ReturnsAsync(buyerList);
+            _mongoRepository.Setup(x => x.GetAllBuyers()).ReturnsAsync(buyerList);
+
+            // Act
+            await userService.AddBuyer(buyer2);
+
+            // Assert
+            _userRepository.Verify(x => x.AddBuyer(It.IsAny<Buyer>()), Times.Once);
+            _mongoRepository.Verify(x => x.AddBuyer(It.IsAny<Buyer>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task Add_Buyer_Failure_Test()
+        {
+            // Arrange
+            Mock<IUserRepository> _userRepository = new Mock<IUserRepository>();
+            Mock<IMongoCacheRepository> _mongoRepository = new Mock<IMongoCacheRepository>();
+            IUserService userService = new UserService(_userRepository.Object, _mongoRepository.Object);
+
+            Buyer buyer = new Buyer
+            {
+                BuyerId = 1,
+                Name = "Test",
+                Surname = "TestSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                IsInLoyaltyProgram = true,
+            };
+
+            Buyer buyer2 = new Buyer
+            {
+                BuyerId = 2,
+                Name = "Test2",
+                Surname = "TestSurname2",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                IsInLoyaltyProgram = false,
+            };
+
+            var buyerList = new List<Buyer> { buyer };
+            _userRepository.Setup(x => x.GetAllBuyers()).ReturnsAsync(buyerList);
+            _mongoRepository.Setup(x => x.GetAllBuyers()).ReturnsAsync(buyerList);
+
+            // Act
+            await userService.AddBuyer(buyer2);
+
+            // Assert
+            _userRepository.Verify(x => x.AddBuyer(It.IsAny<Buyer>()), Times.Once);
+            _mongoRepository.Verify(x => x.AddBuyer(It.IsAny<Buyer>()), Times.Once);
+
+            await Assert.ThrowsAsync<Exception>(() => userService.AddBuyer(buyer));
+        }
+
+        [Fact]
+        public async Task Add_Seller_Success_Test()
+        {
+            // Arrange
+            Mock<IUserRepository> _userRepository = new Mock<IUserRepository>();
+            Mock<IMongoCacheRepository> _mongoRepository = new Mock<IMongoCacheRepository>();
+            IUserService userService = new UserService(_userRepository.Object, _mongoRepository.Object);
+
+            Seller seller = new Seller
+            {
+                SellerId = 1,
+                Name = "Test",
+                Surname = "TestSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                Position = SellerPosition.Consultant,
+            };
+
+            Seller seller2 = new Seller
+            {
+                SellerId = 2,
+                Name = "Test2",
+                Surname = "TestSurname2",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                Position = SellerPosition.Cashier,
+            };
+
+            var sellerList = new List<Seller> { seller };
+            _userRepository.Setup(x => x.GetAllSellers()).ReturnsAsync(sellerList);
+            _mongoRepository.Setup(x => x.GetAllSellers()).ReturnsAsync(sellerList);
+
+            // Act
+            await userService.AddSeller(seller2);
+
+            // Assert
+            _userRepository.Verify(x => x.AddSeller(It.IsAny<Seller>()), Times.Once);
+            _mongoRepository.Verify(x => x.AddSeller(It.IsAny<Seller>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task Add_Seller_Failure_Test()
+        {
+            // Arrange
+            Mock<IUserRepository> _userRepository = new Mock<IUserRepository>();
+            Mock<IMongoCacheRepository> _mongoRepository = new Mock<IMongoCacheRepository>();
+            IUserService userService = new UserService(_userRepository.Object, _mongoRepository.Object);
+
+            Seller seller = new Seller
+            {
+                SellerId = 1,
+                Name = "Test",
+                Surname = "TestSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                Position = SellerPosition.Consultant,
+            };
+
+            Seller seller2 = new Seller
+            {
+                SellerId = 2,
+                Name = "Test2",
+                Surname = "TestSurname2",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                Position = SellerPosition.Cashier,
+            };
+
+            var sellerList = new List<Seller> { seller };
+            _userRepository.Setup(x => x.GetAllSellers()).ReturnsAsync(sellerList);
+            _mongoRepository.Setup(x => x.GetAllSellers()).ReturnsAsync(sellerList);
+
+            // Act
+            await userService.AddSeller(seller2);
+
+            // Assert
+            _userRepository.Verify(x => x.AddSeller(It.IsAny<Seller>()), Times.Once);
+            _mongoRepository.Verify(x => x.AddSeller(It.IsAny<Seller>()), Times.Once);
+
+            await Assert.ThrowsAsync<Exception>(() => userService.AddSeller(seller));
+        }
 
 
     }

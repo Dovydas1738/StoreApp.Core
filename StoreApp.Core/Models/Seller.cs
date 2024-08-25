@@ -22,5 +22,7 @@ namespace StoreApp.Core.Models
             PhoneNumber = phoneNumber;
             Position = position;
         }
+
+        public Seller() { }
     }
 }

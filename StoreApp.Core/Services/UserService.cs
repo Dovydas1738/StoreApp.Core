@@ -1,4 +1,6 @@
-﻿using StoreApp.Core.Contracts;
+﻿using MongoDB.Driver.Core.Events;
+using MongoDB.Driver.Core.Servers;
+using StoreApp.Core.Contracts;
 using StoreApp.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -21,12 +23,30 @@ namespace StoreApp.Core.Services
 
         public async Task AddBuyer(Buyer buyer)
         {
+            foreach (Buyer b in await _userRepository.GetAllBuyers())
+            {
+                if (buyer.Name == b.Name && buyer.Surname == b.Surname)
+                {
+                    await _userMongoCacheRepository.AddBuyer(buyer);
+                    throw new Exception("Buyer already exists.");
+                }
+            }
+
             await _userMongoCacheRepository.AddBuyer(buyer);
             await _userRepository.AddBuyer(buyer);
         }
 
         public async Task AddSeller(Seller seller)
         {
+            foreach (Seller b in await _userRepository.GetAllSellers())
+            {
+                if (seller.Name == b.Name && seller.Surname == b.Surname)
+                {
+                    await _userMongoCacheRepository.AddSeller(seller);
+                    throw new Exception("Seller already exists.");
+                }
+            }
+
             await _userMongoCacheRepository.AddSeller(seller);
             await _userRepository.AddSeller(seller);
         }
@@ -43,9 +63,12 @@ namespace StoreApp.Core.Services
 
         public async Task<List<Seller>> GetAllSellers()
         {
-            if (_userMongoCacheRepository.GetAllSellers().Result.Count < _userRepository.GetAllSellers().Result.Count)
+            List<Seller> dbSellers = await _userRepository.GetAllSellers();
+            List<Seller> cacheSellers = await _userMongoCacheRepository.GetAllSellers();
+
+            if (cacheSellers.Count < dbSellers.Count)
             {
-                //add range i guess
+                //clear cache ir td add
             }
 
             return await _userMongoCacheRepository.GetAllSellers();
@@ -122,14 +145,31 @@ namespace StoreApp.Core.Services
 
         }
 
-        public Task UpdateBuyer(Buyer buyer)
+        public async Task UpdateBuyer(Buyer buyer)
         {
-            throw new NotImplementedException();
+            Buyer foundBuyer = await _userMongoCacheRepository.GetBuyerById(buyer.BuyerId);
+            Buyer foundBuyer2 = await _userRepository.GetBuyerById(buyer.BuyerId);
+
+            if (foundBuyer == null && foundBuyer2 == null)
+            {
+                throw new Exception("No buyer found");
+            }
+            await _userRepository.UpdateBuyer(buyer);
+            await _userMongoCacheRepository.UpdateBuyer(buyer);
         }
 
-        public Task UpdateSeller(Seller seller)
+        public async Task UpdateSeller(Seller seller)
         {
-            throw new NotImplementedException();
+            Seller foundSeller = await _userMongoCacheRepository.GetSellerById(seller.SellerId);
+            Seller foundSeller2 = await _userRepository.GetSellerById(seller.SellerId);
+
+            if (foundSeller == null && foundSeller2 == null)
+            {
+                throw new Exception("No buyer found");
+            }
+            await _userRepository.UpdateSeller(seller);
+            await _userMongoCacheRepository.UpdateSeller(seller);
+
         }
     }
 }

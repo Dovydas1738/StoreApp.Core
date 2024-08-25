@@ -142,5 +142,30 @@ namespace StoreApp.Core.Repositories
         {
             await _orders.ReplaceOneAsync(x => x.OrderId == order.OrderId, order);
         }
+
+        public async Task DropCaches()
+        {
+            var dropBuyers = _buyers.Database.DropCollectionAsync("allBuyers");
+            var dropSellers = _sellers.Database.DropCollectionAsync("allSellers");
+            var dropOrders = _orders.Database.DropCollectionAsync("allOrders");
+
+            await Task.WhenAll(dropBuyers, dropSellers, dropOrders);
+        }
+
+        public async Task ClearBuyersCache()
+        {
+            await _buyers.Database.DropCollectionAsync("allBuyers");
+        }
+
+        public async Task ClearSellersCache()
+        {
+            await _sellers.Database.DropCollectionAsync("allSellers");
+        }
+
+        public async Task ClearOrdersCache()
+        {
+            await _orders.Database.DropCollectionAsync("allOrders");
+        }
+
     }
 }
