@@ -53,11 +53,17 @@ namespace StoreApp.Core.Services
 
         public async Task<List<Buyer>> GetAllBuyers()
         {
-            if (_userMongoCacheRepository.GetAllBuyers().Result.Count < _userRepository.GetAllBuyers().Result.Count)
-            {
-                //add range i guess, arba replace or some shit
-            }
+            List<Buyer> dbBuyers = await _userRepository.GetAllBuyers();
+            List<Buyer> cacheBuyers = await _userMongoCacheRepository.GetAllBuyers();
 
+            if (cacheBuyers.Count < dbBuyers.Count)
+            {
+                await _userMongoCacheRepository.ClearBuyersCache();
+                foreach(Buyer b in dbBuyers)
+                {
+                    await _userMongoCacheRepository.AddBuyer(b);
+                }
+            }
             return await _userMongoCacheRepository.GetAllBuyers();
         }
 
@@ -68,9 +74,12 @@ namespace StoreApp.Core.Services
 
             if (cacheSellers.Count < dbSellers.Count)
             {
-                //clear cache ir td add
+                await _userMongoCacheRepository.ClearSellersCache();
+                foreach(Seller s in dbSellers)
+                {
+                    await _userMongoCacheRepository.AddSeller(s);
+                }
             }
-
             return await _userMongoCacheRepository.GetAllSellers();
         }
 
