@@ -4,12 +4,14 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MongoDB.Bson.Serialization.Attributes;
 using StoreApp.Core.Enums;
 
 namespace StoreApp.Core.Models
 {
     public class Seller : User
     {
+        [BsonId]
         [Key]
         public int SellerId { get; set; }
         public SellerPosition Position { get; set; }

@@ -32,8 +32,8 @@ namespace StoreApp.Core.Services
                 }
             }
 
-            await _mongoCacheRepository.AddBuyer(buyer);
             await _userRepository.AddBuyer(buyer);
+            await _mongoCacheRepository.AddBuyer(buyer);
         }
 
         public async Task AddSeller(Seller seller)
@@ -47,8 +47,8 @@ namespace StoreApp.Core.Services
                 }
             }
 
-            await _mongoCacheRepository.AddSeller(seller);
             await _userRepository.AddSeller(seller);
+            await _mongoCacheRepository.AddSeller(seller);
         }
 
         public async Task<List<Buyer>> GetAllBuyers()

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -9,6 +10,7 @@ namespace StoreApp.Core.Models
 {
     public class Buyer : User
     {
+        [BsonId]
         [Key]
         public int BuyerId { get; set; }
         public bool IsInLoyaltyProgram { get; set; }
