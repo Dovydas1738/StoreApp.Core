@@ -14,23 +14,24 @@ namespace StoreApp.Core.Models
         [BsonId]
         [Key]
         public int OrderId { get; set; }
+        public int BuyerId { get; set; }
         [ForeignKey("BuyerId")]
         public Buyer Buyer { get; set; }
+        public int ProductId { get; set; }
         [ForeignKey("ProductId")]
         public Product Product { get; set; }
-        public int Quantity { get; set; }
-        public DateTime DateTime { get; set; }
+        public int SellerId { get; set; }
         [ForeignKey("SellerId")]
         public Seller Seller { get; set; }
-
+        public int Quantity { get; set; }
+        public DateTime DateTime { get; set; }
         public Order(Buyer buyer, Product product, int quantity, Seller seller)
         {
-            OrderId = OrderId;
-            Buyer = buyer;
-            Product = product;
+            BuyerId = buyer.BuyerId;
+            ProductId = product.ProductId;
+            SellerId = seller.SellerId;
             Quantity = quantity;
             DateTime = DateTime.Now;
-            Seller = seller;
         }
 
         public Order() { }

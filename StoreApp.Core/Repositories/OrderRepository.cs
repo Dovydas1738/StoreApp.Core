@@ -43,6 +43,15 @@ namespace StoreApp.Core.Repositories
             using (var context = new StoreAppDbContext())
             {
                 List<Order> allOrders = await context.Orders.ToListAsync();
+
+                foreach (Order o in allOrders)
+                {
+                    context.Entry(o).Reference(x => x.Buyer).Load();
+                    context.Entry(o).Reference(x => x.Product).Load();
+                    context.Entry(o).Reference(x => x.Seller).Load();
+                    Console.WriteLine($"{o.Buyer.Name} {o.Buyer.Surname} {o.Product.ProductName} {o.Seller.Name} {o.Seller.Surname}");
+                }
+
                 return allOrders;
             }
         }
@@ -55,6 +64,7 @@ namespace StoreApp.Core.Repositories
                 await context.SaveChangesAsync();
             }
         }
+
 
     }
 }

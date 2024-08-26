@@ -29,13 +29,16 @@ namespace StoreApp.API.Controllers
         {
             try
             {
-                Order order = new Order();
+                var buyer = await _userService.GetBuyerById(newOrder.BuyerId);
+                var product = await _productService.GetProductById(newOrder.ProductId);
+                var seller = await _userService.GetSellerById(newOrder.SellerId);
 
-                order.Buyer = new Buyer(newOrder.BuyerId);
-                order.Product = new Product(newOrder.ProductId);
-                order.Quantity = newOrder.Quantity;
-                order.DateTime = DateTime.Now;
-                order.Seller = new Seller(newOrder.SellerId);
+                if (buyer == null || product == null || seller == null)
+                {
+                    return NotFound("One or more entities not found.");
+                }
+
+                var order = new Order(buyer, product, newOrder.Quantity, seller);
 
 
 

@@ -15,26 +15,19 @@ namespace StoreApp.Core.Services
         private readonly IOrderRepository _orderRepository;
         private readonly IMongoCacheRepository _mongoCacheRepository;
         private readonly IProductRepository _productRepository;
-        private readonly StoreAppDbContext _dbContext;
 
-        public OrderService(IOrderRepository orderRepository, IMongoCacheRepository mongoCacheRepository, IProductRepository productRepository, StoreAppDbContext dbContext)
+        public OrderService(IOrderRepository orderRepository, IMongoCacheRepository mongoCacheRepository, IProductRepository productRepository)
         {
             _orderRepository = orderRepository;
             _mongoCacheRepository = mongoCacheRepository;
             _productRepository = productRepository;
-            _dbContext = dbContext;
         }
 
         public async Task AddOrder(Order order)
         {
 
-
-            _dbContext.Entry(order.Buyer).State = EntityState.Unchanged;
-            _dbContext.Entry(order.Product).State = EntityState.Unchanged;
-            _dbContext.Entry(order.Seller).State = EntityState.Unchanged;
-
             var allProducts = (await _productRepository.GetAllProducts()).ToList();
-            Product orderedProduct = allProducts.FirstOrDefault(p => p.ProductId == order.Product.ProductId);
+            Product orderedProduct = allProducts.FirstOrDefault(p => p.ProductId == order.ProductId);
 
             if (orderedProduct == null || order.Quantity > orderedProduct.AmountInStorage)
             {
@@ -42,10 +35,6 @@ namespace StoreApp.Core.Services
             }
             else
             {
-                _dbContext.Entry(order.Buyer).State = EntityState.Unchanged;
-                _dbContext.Entry(order.Product).State = EntityState.Unchanged;
-                _dbContext.Entry(order.Seller).State = EntityState.Unchanged;
-
                 orderedProduct.AmountInStorage -= order.Quantity;
                 await _productRepository.UpdateProduct(orderedProduct);
                 await _orderRepository.AddOrder(order);
@@ -105,7 +94,7 @@ namespace StoreApp.Core.Services
             }
 
             var allProducts = _productRepository.GetAllProducts().Result.ToList();
-            Product orderedProduct = allProducts.FirstOrDefault(p => p.ProductName == foundOrder.Product.ProductName);
+            Product orderedProduct = allProducts.FirstOrDefault(p => p.ProductId == foundOrder.ProductId);
 
             orderedProduct.AmountInStorage += foundOrder.Quantity;
             await _productRepository.UpdateProduct(orderedProduct);

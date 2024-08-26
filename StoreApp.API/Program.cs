@@ -23,7 +23,6 @@ builder.Services.AddTransient<IUserRepository, UserRepository>(_ => new UserRepo
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<IOrderRepository, OrderRepository>(_ => new OrderRepository());
 builder.Services.AddTransient<IOrderService, OrderService>();
-builder.Services.AddDbContext<StoreAppDbContext>();
 
 builder.Services.AddCors(options =>
 {
