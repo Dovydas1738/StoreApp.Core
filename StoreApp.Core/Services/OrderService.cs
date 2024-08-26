@@ -1,5 +1,6 @@
 ﻿using StoreApp.Core.Contracts;
 using StoreApp.Core.Models;
+using StoreApp.Core.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,36 +13,120 @@ namespace StoreApp.Core.Services
     {
         private readonly IOrderRepository _orderRepository;
         private readonly IMongoCacheRepository _mongoCacheRepository;
+        private readonly IProductRepository _productRepository;
 
-        public OrderService(IOrderRepository orderRepository, IMongoCacheRepository mongoCacheRepository)
+        public OrderService(IOrderRepository orderRepository, IMongoCacheRepository mongoCacheRepository, IProductRepository productRepository)
         {
             _orderRepository = orderRepository;
             _mongoCacheRepository = mongoCacheRepository;
+            _productRepository = productRepository;
         }
 
-        public Task AddOrder(Order order)
+        public async Task AddOrder(Order order)
         {
-            throw new NotImplementedException();
+            var allProducts = _productRepository.GetAllProducts().Result.ToList();
+            Product orderedProduct = allProducts.FirstOrDefault(p => p.ProductName == order.Product.ProductName);
+
+            if (orderedProduct == null || order.Quantity > orderedProduct.AmountInStorage)
+            {
+                throw new Exception("Not enough products in storage/order not found");
+            }
+            else
+            {
+                orderedProduct.AmountInStorage -= order.Quantity;
+                await _productRepository.UpdateProduct(orderedProduct);
+                await _mongoCacheRepository.AddOrder(order);
+                await _orderRepository.AddOrder(order);
+            }
+
         }
 
-        public Task<List<Order>> GetAllOrders()
+        public async Task<List<Order>> GetAllOrders()
         {
-            throw new NotImplementedException();
+            List<Order> dbOrders = await _orderRepository.GetAllOrders();
+            List<Order> cacheOrders = await _mongoCacheRepository.GetAllOrders();
+
+            if (cacheOrders.Count < dbOrders.Count)
+            {
+                await _mongoCacheRepository.ClearOrdersCache();
+                foreach (Order o in dbOrders)
+                {
+                    await _mongoCacheRepository.AddOrder(o);
+                }
+            }
+            return await _mongoCacheRepository.GetAllOrders();
+
         }
 
-        public Task<Order> GetOrderById(int orderId)
+        public async Task<Order> GetOrderById(int orderId)
         {
-            throw new NotImplementedException();
+            Order foundOrder = await _mongoCacheRepository.GetOrderById(orderId);
+
+            if (foundOrder == null)
+            {
+                Order foundOrder2 = await _orderRepository.GetOrderById(orderId);
+
+                if (foundOrder2 == null)
+                {
+                    throw new Exception("No order found");
+                }
+                else
+                {
+                    await _mongoCacheRepository.AddOrder(foundOrder2);
+                }
+
+                return await _mongoCacheRepository.GetOrderById(orderId);
+            }
+            return foundOrder;
+
         }
 
-        public Task RemoveOrderById(int orderId)
+        public async Task RemoveOrderById(int orderId)
         {
-            throw new NotImplementedException();
+            Order foundOrderCache = await _mongoCacheRepository.GetOrderById(orderId);
+            Order foundOrder = await _orderRepository.GetOrderById(orderId);
+
+            if (foundOrder == null && foundOrderCache == null)
+            {
+                throw new Exception("No order found");
+            }
+
+            var allProducts = _productRepository.GetAllProducts().Result.ToList();
+            Product orderedProduct = allProducts.FirstOrDefault(p => p.ProductName == foundOrder.Product.ProductName);
+
+            orderedProduct.AmountInStorage += foundOrder.Quantity;
+            await _productRepository.UpdateProduct(orderedProduct);
+
+            await _orderRepository.RemoveOrderById(orderId);
+            await _mongoCacheRepository.RemoveOrderById(orderId);
+
+
         }
 
-        public Task UpdateOrder(Order order)
+        public async Task UpdateOrder(Order order)
         {
-            throw new NotImplementedException();
+            Order foundOrderCache = await _mongoCacheRepository.GetOrderById(order.OrderId);
+            Order foundOrder = await _orderRepository.GetOrderById(order.OrderId);
+
+            if (foundOrder == null && foundOrderCache == null)
+            {
+                throw new Exception("No order found");
+            }
+
+            var allProducts = _productRepository.GetAllProducts().Result.ToList();
+            Product orderedProduct = allProducts.FirstOrDefault(p => p.ProductName == order.Product.ProductName);
+
+            if (order.Quantity > orderedProduct.AmountInStorage + foundOrder.Quantity)
+            {
+                throw new Exception("Not enough products in storage/order not found");
+            }
+            else
+            {
+                orderedProduct.AmountInStorage = orderedProduct.AmountInStorage + foundOrder.Quantity - order.Quantity;
+                await _productRepository.UpdateProduct(orderedProduct);
+                await _orderRepository.UpdateOrder(order);
+                await _mongoCacheRepository.UpdateOrder(order);
+            }
         }
     }
 }

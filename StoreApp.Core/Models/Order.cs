@@ -21,9 +21,8 @@ namespace StoreApp.Core.Models
         [ForeignKey("SellerId")]
         public Seller Seller { get; set; }
 
-        public Order(int orderId, Buyer buyer, Product product, int quantity, Seller seller)
+        public Order(Buyer buyer, Product product, int quantity, Seller seller)
         {
-            OrderId = orderId;
             Buyer = buyer;
             Product = product;
             Quantity = quantity;

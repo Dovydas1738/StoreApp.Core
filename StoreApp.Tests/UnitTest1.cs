@@ -1439,6 +1439,935 @@ namespace StoreApp.Tests
 
         }
 
-    }
+        // Order tests
 
+        [Fact]
+        public async Task Add_Order_Success_Test()
+        {
+            // Arrange
+            Mock<IOrderRepository> _orderRepository = new Mock<IOrderRepository>();
+            Mock<IMongoCacheRepository> _mongoRepository = new Mock<IMongoCacheRepository>();
+            Mock<IProductRepository> _productRepository = new Mock<IProductRepository>();
+            IOrderService orderService = new OrderService(_orderRepository.Object, _mongoRepository.Object, _productRepository.Object);
+
+            Buyer buyer = new Buyer
+            {
+                BuyerId = 1,
+                Name = "Test",
+                Surname = "TestSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                IsInLoyaltyProgram = false,
+            };
+
+            Product product = new Product
+            {
+                ProductId = 1,
+                ProductName = "Test",
+                Price = 10m,
+                Category = ProductCategory.Food,
+                AmountInStorage = 3,
+            };
+
+            Seller seller = new Seller
+            {
+                SellerId = 1,
+                Name = "TestSeller",
+                Surname = "TestSellerSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                Position = SellerPosition.Consultant,
+            };
+
+
+            Order order = new Order
+            {
+                OrderId = 1,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 2,
+                Seller = seller,
+            };
+
+            var orderList = new List<Order> { order };
+            var productList = new List<Product> { product };
+            _productRepository.Setup(x => x.GetAllProducts()).ReturnsAsync(productList);
+
+            Product updatedProduct = null;
+            _productRepository.Setup(x => x.UpdateProduct(It.IsAny<Product>()))
+                              .Callback<Product>(p => updatedProduct = p)
+                              .Returns(Task.CompletedTask);
+
+            // Act
+            await orderService.AddOrder(order);
+
+            // Assert
+            _orderRepository.Verify(x => x.AddOrder(It.IsAny<Order>()), Times.Once);
+            _mongoRepository.Verify(x => x.AddOrder(It.IsAny<Order>()), Times.Once);
+            _productRepository.Verify(x => x.UpdateProduct(It.IsAny<Product>()), Times.Once);
+
+            Assert.NotNull(updatedProduct);
+            Assert.Equal(1, updatedProduct.AmountInStorage);
+        }
+
+        [Fact]
+        public async Task Add_Order_Failure_Test()
+        {
+            // Arrange
+            Mock<IOrderRepository> _orderRepository = new Mock<IOrderRepository>();
+            Mock<IMongoCacheRepository> _mongoRepository = new Mock<IMongoCacheRepository>();
+            Mock<IProductRepository> _productRepository = new Mock<IProductRepository>();
+            IOrderService orderService = new OrderService(_orderRepository.Object, _mongoRepository.Object, _productRepository.Object);
+
+            Buyer buyer = new Buyer
+            {
+                BuyerId = 1,
+                Name = "Test",
+                Surname = "TestSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                IsInLoyaltyProgram = false,
+            };
+
+            Product product = new Product
+            {
+                ProductId = 1,
+                ProductName = "Test",
+                Price = 10m,
+                Category = ProductCategory.Food,
+                AmountInStorage = 3,
+            };
+
+            Seller seller = new Seller
+            {
+                SellerId = 1,
+                Name = "TestSeller",
+                Surname = "TestSellerSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                Position = SellerPosition.Consultant,
+            };
+
+
+            Order order = new Order
+            {
+                OrderId = 1,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 4,
+                Seller = seller,
+            };
+
+
+
+            var orderList = new List<Order> { order };
+            var productList = new List<Product> { product };
+            _productRepository.Setup(x => x.GetAllProducts()).ReturnsAsync(productList);
+
+            Product updatedProduct = null;
+            _productRepository.Setup(x => x.UpdateProduct(It.IsAny<Product>()))
+                              .Callback<Product>(p => updatedProduct = p)
+                              .Returns(Task.CompletedTask);
+
+            // Act
+
+            // Assert
+            await Assert.ThrowsAsync<Exception>(() => orderService.AddOrder(order));
+        }
+
+        [Fact]
+        public async Task Get_All_Orders_Test()
+        {
+            // Arrange
+            Mock<IOrderRepository> _orderRepository = new Mock<IOrderRepository>();
+            Mock<IMongoCacheRepository> _mongoRepository = new Mock<IMongoCacheRepository>();
+            Mock<IProductRepository> _productRepository = new Mock<IProductRepository>();
+            IOrderService orderService = new OrderService(_orderRepository.Object, _mongoRepository.Object, _productRepository.Object);
+
+            Buyer buyer = new Buyer
+            {
+                BuyerId = 1,
+                Name = "Test",
+                Surname = "TestSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                IsInLoyaltyProgram = false,
+            };
+
+            Product product = new Product
+            {
+                ProductId = 2,
+                ProductName = "Test",
+                Price = 10m,
+                Category = ProductCategory.Food,
+                AmountInStorage = 3,
+            };
+
+            Seller seller = new Seller
+            {
+                SellerId = 1,
+                Name = "TestSeller",
+                Surname = "TestSellerSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                Position = SellerPosition.Consultant,
+            };
+
+
+            Order order = new Order
+            {
+                OrderId = 1,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 2,
+                Seller = seller,
+            };
+
+            Order order2 = new Order
+            {
+                OrderId = 1,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 1,
+                Seller = seller,
+            };
+
+
+            var orderListCache = new List<Order> { order };
+            var orderListDb = new List<Order> { order, order2 };
+
+            _orderRepository.Setup(x => x.GetAllOrders()).ReturnsAsync(orderListDb);
+            _mongoRepository.SetupSequence(x => x.GetAllOrders())
+                .ReturnsAsync(orderListCache)
+                .ReturnsAsync(orderListDb);
+
+            // Act
+            List<Order> allOrders = await orderService.GetAllOrders();
+
+            // Assert
+            Assert.NotNull(allOrders);
+            Assert.Equal(2, allOrders.Count);
+
+            _mongoRepository.Verify(x => x.ClearOrdersCache(), Times.Once);
+            _mongoRepository.Verify(x => x.AddOrder(It.IsAny<Order>()), Times.Exactly(orderListDb.Count));
+            _mongoRepository.Verify(x => x.GetAllOrders(), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task Get_Order_By_Id_Success_Test()
+        {
+            // Arrange
+            Mock<IOrderRepository> _orderRepository = new Mock<IOrderRepository>();
+            Mock<IMongoCacheRepository> _mongoRepository = new Mock<IMongoCacheRepository>();
+            Mock<IProductRepository> _productRepository = new Mock<IProductRepository>();
+            IOrderService orderService = new OrderService(_orderRepository.Object, _mongoRepository.Object, _productRepository.Object);
+
+            Buyer buyer = new Buyer
+            {
+                BuyerId = 1,
+                Name = "Test",
+                Surname = "TestSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                IsInLoyaltyProgram = false,
+            };
+
+            Product product = new Product
+            {
+                ProductId = 1,
+                ProductName = "Test",
+                Price = 10m,
+                Category = ProductCategory.Food,
+                AmountInStorage = 3,
+            };
+
+            Seller seller = new Seller
+            {
+                SellerId = 1,
+                Name = "TestSeller",
+                Surname = "TestSellerSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                Position = SellerPosition.Consultant,
+            };
+
+
+            Order order = new Order
+            {
+                OrderId = 1,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 2,
+                Seller = seller,
+            };
+
+            Order order2 = new Order
+            {
+                OrderId = 2,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 1,
+                Seller = seller,
+            };
+
+
+            var orderListCache = new List<Order> { order };
+            var orderListDb = new List<Order> { order, order2 };
+
+            _orderRepository.Setup(x => x.GetOrderById(1)).ReturnsAsync(order);
+            _orderRepository.Setup(x => x.GetOrderById(2)).ReturnsAsync(order2);
+
+            _mongoRepository.Setup(x => x.GetOrderById(It.IsAny<int>()))
+                   .ReturnsAsync((int id) => orderListCache.FirstOrDefault(o => o.OrderId == id));
+
+            _mongoRepository.Setup(x => x.AddOrder(It.IsAny<Order>())).Callback<Order>(order => orderListCache.Add(order));
+
+            // Act
+            Order foundOrder = await orderService.GetOrderById(1);
+            Order foundOrder2 = await orderService.GetOrderById(2);
+
+            // Assert
+            Assert.NotNull(foundOrder);
+            _mongoRepository.Verify(x => x.AddOrder(It.IsAny<Order>()), Times.Once);
+            Assert.NotNull(foundOrder2);
+            Assert.Equal(2, orderListCache.Count);
+            Assert.Equal(2, orderListDb.Count);
+
+
+        }
+
+        [Fact]
+        public async Task Get_Order_By_Id_Failure_NotFound_Test()
+        {
+            // Arrange
+            Mock<IOrderRepository> _orderRepository = new Mock<IOrderRepository>();
+            Mock<IMongoCacheRepository> _mongoRepository = new Mock<IMongoCacheRepository>();
+            Mock<IProductRepository> _productRepository = new Mock<IProductRepository>();
+            IOrderService orderService = new OrderService(_orderRepository.Object, _mongoRepository.Object, _productRepository.Object);
+
+            Buyer buyer = new Buyer
+            {
+                BuyerId = 1,
+                Name = "Test",
+                Surname = "TestSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                IsInLoyaltyProgram = false,
+            };
+
+            Product product = new Product
+            {
+                ProductId = 1,
+                ProductName = "Test",
+                Price = 10m,
+                Category = ProductCategory.Food,
+                AmountInStorage = 3,
+            };
+
+            Seller seller = new Seller
+            {
+                SellerId = 1,
+                Name = "TestSeller",
+                Surname = "TestSellerSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                Position = SellerPosition.Consultant,
+            };
+
+
+            Order order = new Order
+            {
+                OrderId = 1,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 2,
+                Seller = seller,
+            };
+
+            Order order2 = new Order
+            {
+                OrderId = 2,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 1,
+                Seller = seller,
+            };
+
+
+            var orderListCache = new List<Order> { order };
+            var orderListDb = new List<Order> { order, order2 };
+
+            _orderRepository.Setup(x => x.GetOrderById(1)).ReturnsAsync(order);
+            _orderRepository.Setup(x => x.GetOrderById(2)).ReturnsAsync(order2);
+
+            _mongoRepository.Setup(x => x.GetOrderById(It.IsAny<int>()))
+                   .ReturnsAsync((int id) => orderListCache.FirstOrDefault(o => o.OrderId == id));
+
+            _mongoRepository.Setup(x => x.AddOrder(It.IsAny<Order>())).Callback<Order>(order => orderListCache.Add(order));
+
+            // Act
+            Order foundOrder = await orderService.GetOrderById(1);
+            Order foundOrder2 = await orderService.GetOrderById(2);
+
+            // Assert
+            Assert.NotNull(foundOrder);
+            _mongoRepository.Verify(x => x.AddOrder(It.IsAny<Order>()), Times.Once);
+            Assert.NotNull(foundOrder2);
+            Assert.Equal(2, orderListCache.Count);
+            Assert.Equal(2, orderListDb.Count);
+            await Assert.ThrowsAsync<Exception>(() => orderService.GetOrderById(3));
+
+
+        }
+
+        [Fact]
+        public async Task Remove_Order_By_Id_Success_Test()
+        {
+            // Arrange
+            Mock<IOrderRepository> _orderRepository = new Mock<IOrderRepository>();
+            Mock<IMongoCacheRepository> _mongoRepository = new Mock<IMongoCacheRepository>();
+            Mock<IProductRepository> _productRepository = new Mock<IProductRepository>();
+            IOrderService orderService = new OrderService(_orderRepository.Object, _mongoRepository.Object, _productRepository.Object);
+
+            Buyer buyer = new Buyer
+            {
+                BuyerId = 1,
+                Name = "Test",
+                Surname = "TestSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                IsInLoyaltyProgram = false,
+            };
+
+            Product product = new Product
+            {
+                ProductId = 1,
+                ProductName = "Test",
+                Price = 10m,
+                Category = ProductCategory.Food,
+                AmountInStorage = 3,
+            };
+
+            Seller seller = new Seller
+            {
+                SellerId = 1,
+                Name = "TestSeller",
+                Surname = "TestSellerSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                Position = SellerPosition.Consultant,
+            };
+
+
+            Order order = new Order
+            {
+                OrderId = 1,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 2,
+                Seller = seller,
+            };
+
+            Order order2 = new Order
+            {
+                OrderId = 2,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 1,
+                Seller = seller,
+            };
+
+
+            var orderListCache = new List<Order> { order };
+            var orderListDb = new List<Order> { order, order2 };
+
+            _orderRepository.Setup(x => x.GetAllOrders()).ReturnsAsync(orderListDb);
+            _orderRepository.Setup(x => x.GetOrderById(1)).ReturnsAsync(order);
+            _orderRepository.Setup(x => x.GetOrderById(2)).ReturnsAsync(order2);
+            _orderRepository.Setup(x => x.RemoveOrderById(It.IsAny<int>())).Callback<int>(id => orderListDb.RemoveAll(o => o.OrderId == id));
+
+            _mongoRepository.Setup(x => x.GetAllOrders()).ReturnsAsync(orderListCache);
+            _mongoRepository.Setup(x => x.GetOrderById(1)).ReturnsAsync(order);
+            _mongoRepository.Setup(x => x.GetOrderById(2)).ReturnsAsync(order2);
+            _mongoRepository.Setup(x => x.RemoveOrderById(It.IsAny<int>())).Callback<int>(id => orderListCache.RemoveAll(o => o.OrderId == id));
+
+            var productList = new List<Product> { product };
+            _productRepository.Setup(x => x.GetAllProducts()).ReturnsAsync(productList);
+
+            Product updatedProduct = null;
+            _productRepository.Setup(x => x.UpdateProduct(It.IsAny<Product>()))
+                              .Callback<Product>(p => updatedProduct = p)
+                              .Returns(Task.CompletedTask);
+
+            // Act
+            await orderService.RemoveOrderById(1);
+
+            // Assert
+            Assert.NotNull(orderListDb);
+            Assert.Empty(orderListCache);
+            Assert.Single(orderListDb);
+
+            _productRepository.Verify(x => x.UpdateProduct(It.IsAny<Product>()), Times.Once);
+
+            Assert.NotNull(updatedProduct);
+            Assert.Equal(5, updatedProduct.AmountInStorage);
+        }
+
+        [Fact]
+        public async Task Remove_Order_By_Id_Failure_NotFound_Test()
+        {
+            // Arrange
+            Mock<IOrderRepository> _orderRepository = new Mock<IOrderRepository>();
+            Mock<IMongoCacheRepository> _mongoRepository = new Mock<IMongoCacheRepository>();
+            Mock<IProductRepository> _productRepository = new Mock<IProductRepository>();
+            IOrderService orderService = new OrderService(_orderRepository.Object, _mongoRepository.Object, _productRepository.Object);
+
+            Buyer buyer = new Buyer
+            {
+                BuyerId = 1,
+                Name = "Test",
+                Surname = "TestSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                IsInLoyaltyProgram = false,
+            };
+
+            Product product = new Product
+            {
+                ProductId = 1,
+                ProductName = "Test",
+                Price = 10m,
+                Category = ProductCategory.Food,
+                AmountInStorage = 3,
+            };
+
+            Seller seller = new Seller
+            {
+                SellerId = 1,
+                Name = "TestSeller",
+                Surname = "TestSellerSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                Position = SellerPosition.Consultant,
+            };
+
+
+            Order order = new Order
+            {
+                OrderId = 1,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 2,
+                Seller = seller,
+            };
+
+            Order order2 = new Order
+            {
+                OrderId = 2,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 1,
+                Seller = seller,
+            };
+
+
+            var orderListCache = new List<Order> { order };
+            var orderListDb = new List<Order> { order, order2 };
+
+            _orderRepository.Setup(x => x.GetAllOrders()).ReturnsAsync(orderListDb);
+            _orderRepository.Setup(x => x.GetOrderById(1)).ReturnsAsync(order);
+            _orderRepository.Setup(x => x.GetOrderById(2)).ReturnsAsync(order2);
+            _orderRepository.Setup(x => x.RemoveOrderById(It.IsAny<int>())).Callback<int>(id => orderListDb.RemoveAll(o => o.OrderId == id));
+
+            _mongoRepository.Setup(x => x.GetAllOrders()).ReturnsAsync(orderListCache);
+            _mongoRepository.Setup(x => x.GetOrderById(1)).ReturnsAsync(order);
+            _mongoRepository.Setup(x => x.GetOrderById(2)).ReturnsAsync(order2);
+            _mongoRepository.Setup(x => x.RemoveOrderById(It.IsAny<int>())).Callback<int>(id => orderListCache.RemoveAll(o => o.OrderId == id));
+
+            var productList = new List<Product> { product };
+            _productRepository.Setup(x => x.GetAllProducts()).ReturnsAsync(productList);
+
+            Product updatedProduct = null;
+            _productRepository.Setup(x => x.UpdateProduct(It.IsAny<Product>()))
+                              .Callback<Product>(p => updatedProduct = p)
+                              .Returns(Task.CompletedTask);
+
+            // Act
+            await orderService.RemoveOrderById(1);
+
+            // Assert
+            Assert.NotNull(orderListDb);
+            Assert.Empty(orderListCache);
+            Assert.Single(orderListDb);
+
+            await Assert.ThrowsAsync<Exception>(() => orderService.RemoveOrderById(3));
+        }
+
+        [Fact]
+        public async Task Update_Order_Success_Test()
+        {
+            // Arrange
+            Mock<IOrderRepository> _orderRepository = new Mock<IOrderRepository>();
+            Mock<IMongoCacheRepository> _mongoRepository = new Mock<IMongoCacheRepository>();
+            Mock<IProductRepository> _productRepository = new Mock<IProductRepository>();
+            IOrderService orderService = new OrderService(_orderRepository.Object, _mongoRepository.Object, _productRepository.Object);
+
+            Buyer buyer = new Buyer
+            {
+                BuyerId = 1,
+                Name = "Test",
+                Surname = "TestSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                IsInLoyaltyProgram = false,
+            };
+
+            Product product = new Product
+            {
+                ProductId = 1,
+                ProductName = "Test",
+                Price = 10m,
+                Category = ProductCategory.Food,
+                AmountInStorage = 1,
+            };
+
+            Seller seller = new Seller
+            {
+                SellerId = 1,
+                Name = "TestSeller",
+                Surname = "TestSellerSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                Position = SellerPosition.Consultant,
+            };
+
+
+            Order order = new Order
+            {
+                OrderId = 1,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 2,
+                Seller = seller,
+            };
+
+            Order order2 = new Order
+            {
+                OrderId = 2,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 1,
+                Seller = seller,
+            };
+
+            Order orderUpdate = new Order
+            {
+                OrderId = 1,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 3,
+                Seller = seller,
+            };
+
+
+
+            var orderListCache = new List<Order> { order };
+            var orderListDb = new List<Order> { order, order2 };
+
+            _orderRepository.Setup(x => x.GetAllOrders()).ReturnsAsync(orderListDb);
+            _orderRepository.Setup(x => x.GetOrderById(1)).ReturnsAsync(order);
+            _orderRepository.Setup(x => x.UpdateOrder(It.IsAny<Order>()))
+                .Callback<Order>(o =>
+                {
+                    var orderToUpdate = orderListDb.FirstOrDefault(x => x.OrderId == o.OrderId);
+                    if (orderToUpdate != null)
+                    {
+                        orderToUpdate.Buyer = o.Buyer;
+                        orderToUpdate.Product = o.Product;
+                        orderToUpdate.Quantity = o.Quantity;
+                        orderToUpdate.Seller = o.Seller;
+                    }
+                });
+
+            _mongoRepository.Setup(x => x.GetAllOrders()).ReturnsAsync(orderListCache);
+            _mongoRepository.Setup(x => x.GetOrderById(1)).ReturnsAsync(order);
+            _mongoRepository.Setup(x => x.UpdateOrder(It.IsAny<Order>()))
+                .Callback<Order>(o =>
+                {
+                    var orderToUpdate = orderListCache.FirstOrDefault(x => x.OrderId == o.OrderId);
+                    if (orderToUpdate != null)
+                    {
+                        orderToUpdate.Buyer = o.Buyer;
+                        orderToUpdate.Product = o.Product;
+                        orderToUpdate.Quantity = o.Quantity;
+                        orderToUpdate.Seller = o.Seller;
+                    }
+                });
+
+            var productList = new List<Product> { product };
+            _productRepository.Setup(x => x.GetAllProducts()).ReturnsAsync(productList);
+
+            Product updatedProduct = null;
+            _productRepository.Setup(x => x.UpdateProduct(It.IsAny<Product>()))
+                              .Callback<Product>(p => updatedProduct = p)
+                              .Returns(Task.CompletedTask);
+
+            // Act
+            await orderService.UpdateOrder(orderUpdate);
+
+            // Assert
+            Assert.NotNull(orderListDb);
+            Assert.Equal(2, orderListDb.Count);
+
+            Assert.NotNull(orderListCache);
+            Assert.Single(orderListCache);
+
+            _orderRepository.Verify(x => x.UpdateOrder(It.IsAny<Order>()), Times.Once);
+            _mongoRepository.Verify(x => x.UpdateOrder(It.IsAny<Order>()), Times.Once);
+            _productRepository.Verify(x => x.UpdateProduct(It.IsAny<Product>()), Times.Once);
+
+            Assert.Equal(orderListDb[0].Quantity, orderUpdate.Quantity);
+            Assert.NotEqual(orderListDb[1].Quantity, orderUpdate.Quantity);
+
+            Assert.Equal(orderListCache[0].Quantity, orderUpdate.Quantity);
+
+            Assert.NotNull(updatedProduct);
+            Assert.Equal(0, updatedProduct.AmountInStorage);
+
+        }
+
+        [Fact]
+        public async Task Update_Order_Failure_NotFound_Test()
+        {
+            // Arrange
+            Mock<IOrderRepository> _orderRepository = new Mock<IOrderRepository>();
+            Mock<IMongoCacheRepository> _mongoRepository = new Mock<IMongoCacheRepository>();
+            Mock<IProductRepository> _productRepository = new Mock<IProductRepository>();
+            IOrderService orderService = new OrderService(_orderRepository.Object, _mongoRepository.Object, _productRepository.Object);
+
+            Buyer buyer = new Buyer
+            {
+                BuyerId = 1,
+                Name = "Test",
+                Surname = "TestSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                IsInLoyaltyProgram = false,
+            };
+
+            Product product = new Product
+            {
+                ProductId = 1,
+                ProductName = "Test",
+                Price = 10m,
+                Category = ProductCategory.Food,
+                AmountInStorage = 1,
+            };
+
+            Seller seller = new Seller
+            {
+                SellerId = 1,
+                Name = "TestSeller",
+                Surname = "TestSellerSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                Position = SellerPosition.Consultant,
+            };
+
+
+            Order order = new Order
+            {
+                OrderId = 1,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 2,
+                Seller = seller,
+            };
+
+            Order order2 = new Order
+            {
+                OrderId = 2,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 1,
+                Seller = seller,
+            };
+
+            Order orderUpdate = new Order
+            {
+                OrderId = 5,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 3,
+                Seller = seller,
+            };
+
+
+
+            var orderListCache = new List<Order> { order };
+            var orderListDb = new List<Order> { order, order2 };
+
+            _orderRepository.Setup(x => x.GetAllOrders()).ReturnsAsync(orderListDb);
+            _orderRepository.Setup(x => x.GetOrderById(1)).ReturnsAsync(order);
+            _orderRepository.Setup(x => x.UpdateOrder(It.IsAny<Order>()))
+                .Callback<Order>(o =>
+                {
+                    var orderToUpdate = orderListDb.FirstOrDefault(x => x.OrderId == o.OrderId);
+                    if (orderToUpdate != null)
+                    {
+                        orderToUpdate.Buyer = o.Buyer;
+                        orderToUpdate.Product = o.Product;
+                        orderToUpdate.Quantity = o.Quantity;
+                        orderToUpdate.Seller = o.Seller;
+                    }
+                });
+
+            _mongoRepository.Setup(x => x.GetAllOrders()).ReturnsAsync(orderListCache);
+            _mongoRepository.Setup(x => x.GetOrderById(1)).ReturnsAsync(order);
+            _mongoRepository.Setup(x => x.UpdateOrder(It.IsAny<Order>()))
+                .Callback<Order>(o =>
+                {
+                    var orderToUpdate = orderListCache.FirstOrDefault(x => x.OrderId == o.OrderId);
+                    if (orderToUpdate != null)
+                    {
+                        orderToUpdate.Buyer = o.Buyer;
+                        orderToUpdate.Product = o.Product;
+                        orderToUpdate.Quantity = o.Quantity;
+                        orderToUpdate.Seller = o.Seller;
+                    }
+                });
+
+            var productList = new List<Product> { product };
+            _productRepository.Setup(x => x.GetAllProducts()).ReturnsAsync(productList);
+
+            Product updatedProduct = null;
+            _productRepository.Setup(x => x.UpdateProduct(It.IsAny<Product>()))
+                              .Callback<Product>(p => updatedProduct = p)
+                              .Returns(Task.CompletedTask);
+
+            // Act
+
+            // Assert
+            await Assert.ThrowsAsync<Exception>(() => orderService.UpdateOrder(orderUpdate));
+
+
+        }
+
+        [Fact]
+        public async Task Update_Order_Failure_NotEnoughInStorage_Test()
+        {
+            // Arrange
+            Mock<IOrderRepository> _orderRepository = new Mock<IOrderRepository>();
+            Mock<IMongoCacheRepository> _mongoRepository = new Mock<IMongoCacheRepository>();
+            Mock<IProductRepository> _productRepository = new Mock<IProductRepository>();
+            IOrderService orderService = new OrderService(_orderRepository.Object, _mongoRepository.Object, _productRepository.Object);
+
+            Buyer buyer = new Buyer
+            {
+                BuyerId = 1,
+                Name = "Test",
+                Surname = "TestSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                IsInLoyaltyProgram = false,
+            };
+
+            Product product = new Product
+            {
+                ProductId = 1,
+                ProductName = "Test",
+                Price = 10m,
+                Category = ProductCategory.Food,
+                AmountInStorage = 1,
+            };
+
+            Seller seller = new Seller
+            {
+                SellerId = 1,
+                Name = "TestSeller",
+                Surname = "TestSellerSurname",
+                Email = "TestEmail",
+                PhoneNumber = "1234567890",
+                Position = SellerPosition.Consultant,
+            };
+
+
+            Order order = new Order
+            {
+                OrderId = 1,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 2,
+                Seller = seller,
+            };
+
+            Order order2 = new Order
+            {
+                OrderId = 2,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 1,
+                Seller = seller,
+            };
+
+            Order orderUpdate = new Order
+            {
+                OrderId = 1,
+                Buyer = buyer,
+                Product = product,
+                Quantity = 10,
+                Seller = seller,
+            };
+
+
+
+            var orderListCache = new List<Order> { order };
+            var orderListDb = new List<Order> { order, order2 };
+
+            _orderRepository.Setup(x => x.GetAllOrders()).ReturnsAsync(orderListDb);
+            _orderRepository.Setup(x => x.GetOrderById(1)).ReturnsAsync(order);
+            _orderRepository.Setup(x => x.UpdateOrder(It.IsAny<Order>()))
+                .Callback<Order>(o =>
+                {
+                    var orderToUpdate = orderListDb.FirstOrDefault(x => x.OrderId == o.OrderId);
+                    if (orderToUpdate != null)
+                    {
+                        orderToUpdate.Buyer = o.Buyer;
+                        orderToUpdate.Product = o.Product;
+                        orderToUpdate.Quantity = o.Quantity;
+                        orderToUpdate.Seller = o.Seller;
+                    }
+                });
+
+            _mongoRepository.Setup(x => x.GetAllOrders()).ReturnsAsync(orderListCache);
+            _mongoRepository.Setup(x => x.GetOrderById(1)).ReturnsAsync(order);
+            _mongoRepository.Setup(x => x.UpdateOrder(It.IsAny<Order>()))
+                .Callback<Order>(o =>
+                {
+                    var orderToUpdate = orderListCache.FirstOrDefault(x => x.OrderId == o.OrderId);
+                    if (orderToUpdate != null)
+                    {
+                        orderToUpdate.Buyer = o.Buyer;
+                        orderToUpdate.Product = o.Product;
+                        orderToUpdate.Quantity = o.Quantity;
+                        orderToUpdate.Seller = o.Seller;
+                    }
+                });
+
+            var productList = new List<Product> { product };
+            _productRepository.Setup(x => x.GetAllProducts()).ReturnsAsync(productList);
+
+            Product updatedProduct = null;
+            _productRepository.Setup(x => x.UpdateProduct(It.IsAny<Product>()))
+                              .Callback<Product>(p => updatedProduct = p)
+                              .Returns(Task.CompletedTask);
+
+            // Act
+
+
+            // Assert
+            await Assert.ThrowsAsync<Exception>(() => orderService.UpdateOrder(orderUpdate));
+        }
+
+    }
 }

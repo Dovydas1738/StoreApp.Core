@@ -19,6 +19,11 @@ namespace StoreApp.Core.Contracts
         Task<List<Seller>> GetAllSellers();
         Task UpdateBuyer(Buyer buyer);
         Task UpdateSeller(Seller seller);
+        Task AddOrder(Order order);
+        Task<List<Order>> GetAllOrders();
+        Task<Order> GetOrderById(int orderId);
+        Task RemoveOrderById(int orderId);
+        Task UpdateOrder(Order order);
         Task DropCaches();
         Task ClearBuyersCache();
         Task ClearSellersCache();
