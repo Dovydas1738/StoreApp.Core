@@ -25,5 +25,10 @@ namespace StoreApp.Core.Models
         }
 
         public Buyer() { }
+
+        public Buyer(int buyerId)
+        {
+            BuyerId = buyerId;
+        }
     }
 }

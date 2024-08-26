@@ -1,4 +1,5 @@
-﻿using StoreApp.Core.Contracts;
+﻿using Microsoft.EntityFrameworkCore;
+using StoreApp.Core.Contracts;
 using StoreApp.Core.Models;
 using StoreApp.Core.Repositories;
 using System;
@@ -14,18 +15,26 @@ namespace StoreApp.Core.Services
         private readonly IOrderRepository _orderRepository;
         private readonly IMongoCacheRepository _mongoCacheRepository;
         private readonly IProductRepository _productRepository;
+        private readonly StoreAppDbContext _dbContext;
 
-        public OrderService(IOrderRepository orderRepository, IMongoCacheRepository mongoCacheRepository, IProductRepository productRepository)
+        public OrderService(IOrderRepository orderRepository, IMongoCacheRepository mongoCacheRepository, IProductRepository productRepository, StoreAppDbContext dbContext)
         {
             _orderRepository = orderRepository;
             _mongoCacheRepository = mongoCacheRepository;
             _productRepository = productRepository;
+            _dbContext = dbContext;
         }
 
         public async Task AddOrder(Order order)
         {
-            var allProducts = _productRepository.GetAllProducts().Result.ToList();
-            Product orderedProduct = allProducts.FirstOrDefault(p => p.ProductName == order.Product.ProductName);
+
+
+            _dbContext.Entry(order.Buyer).State = EntityState.Unchanged;
+            _dbContext.Entry(order.Product).State = EntityState.Unchanged;
+            _dbContext.Entry(order.Seller).State = EntityState.Unchanged;
+
+            var allProducts = (await _productRepository.GetAllProducts()).ToList();
+            Product orderedProduct = allProducts.FirstOrDefault(p => p.ProductId == order.Product.ProductId);
 
             if (orderedProduct == null || order.Quantity > orderedProduct.AmountInStorage)
             {
@@ -33,10 +42,14 @@ namespace StoreApp.Core.Services
             }
             else
             {
+                _dbContext.Entry(order.Buyer).State = EntityState.Unchanged;
+                _dbContext.Entry(order.Product).State = EntityState.Unchanged;
+                _dbContext.Entry(order.Seller).State = EntityState.Unchanged;
+
                 orderedProduct.AmountInStorage -= order.Quantity;
                 await _productRepository.UpdateProduct(orderedProduct);
-                await _mongoCacheRepository.AddOrder(order);
                 await _orderRepository.AddOrder(order);
+                await _mongoCacheRepository.AddOrder(order);
             }
 
         }

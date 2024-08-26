@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -10,6 +11,7 @@ namespace StoreApp.Core.Models
 {
     public class Order
     {
+        [BsonId]
         [Key]
         public int OrderId { get; set; }
         [ForeignKey("BuyerId")]
@@ -23,6 +25,7 @@ namespace StoreApp.Core.Models
 
         public Order(Buyer buyer, Product product, int quantity, Seller seller)
         {
+            OrderId = OrderId;
             Buyer = buyer;
             Product = product;
             Quantity = quantity;

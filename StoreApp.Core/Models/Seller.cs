@@ -26,5 +26,11 @@ namespace StoreApp.Core.Models
         }
 
         public Seller() { }
+
+        public Seller(int sellerId)
+        {
+            SellerId = sellerId;
+        }
+
     }
 }

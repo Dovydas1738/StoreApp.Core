@@ -3,6 +3,7 @@ using StoreApp.Core.Repositories;
 using StoreApp.Core.Contracts;
 using MongoDB.Driver;
 using System.Runtime.CompilerServices;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,7 @@ builder.Services.AddTransient<IUserRepository, UserRepository>(_ => new UserRepo
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<IOrderRepository, OrderRepository>(_ => new OrderRepository());
 builder.Services.AddTransient<IOrderService, OrderService>();
+builder.Services.AddDbContext<StoreAppDbContext>();
 
 builder.Services.AddCors(options =>
 {
