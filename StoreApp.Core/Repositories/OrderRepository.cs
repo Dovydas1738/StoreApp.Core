@@ -66,6 +66,11 @@ namespace StoreApp.Core.Repositories
             using (var context = new StoreAppDbContext())
             {
                 context.Orders.Update(order);
+
+                context.Entry(order).Reference(x => x.Buyer).Load();
+                context.Entry(order).Reference(x => x.Product).Load();
+                context.Entry(order).Reference(x => x.Seller).Load();
+
                 await context.SaveChangesAsync();
             }
         }
