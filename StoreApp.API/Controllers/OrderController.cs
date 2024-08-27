@@ -15,12 +15,15 @@ namespace StoreApp.API.Controllers
         private readonly IOrderService _orderService;
         private readonly IUserService _userService;
         private readonly IProductService _productService;
+        private readonly ILogger<OrderController> _logger;
 
-        public OrderController(IOrderService orderService, IUserService userService, IProductService productService)
+        public OrderController(IOrderService orderService, IUserService userService, IProductService productService, ILogger<OrderController> logger)
         {
             _orderService = orderService;
             _userService = userService;
             _productService = productService;
+            _logger = logger;
+
         }
 
 
@@ -43,11 +46,13 @@ namespace StoreApp.API.Controllers
 
 
                 await _orderService.AddOrder(order);
+                _logger.LogInformation("Order added successfully");
                 return Ok();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
+                _logger.LogInformation("Add order FAILED");
                 return Problem(detail: ex.Message);
             }
         }
@@ -58,10 +63,12 @@ namespace StoreApp.API.Controllers
             try
             {
                 var allOrders = await _orderService.GetAllOrders();
+                _logger.LogInformation("Get all orders successful");
                 return Ok(allOrders);
             }
             catch
             {
+                _logger.LogInformation("Get all orders FAILED");
                 return Problem();
             }
         }
@@ -72,10 +79,12 @@ namespace StoreApp.API.Controllers
             try
             {
                 var order = await _orderService.GetOrderById(id);
+                _logger.LogInformation("Get order by Id successful");
                 return Ok(order);
             }
             catch
             {
+                _logger.LogInformation("Get order by Id FAILED");
                 return Problem();
             }
         }
@@ -86,10 +95,12 @@ namespace StoreApp.API.Controllers
             try
             {
                 await _orderService.RemoveOrderById(id);
+                _logger.LogInformation("Cancelled order deletion successful");
                 return Ok();
             }
             catch
             {
+                _logger.LogInformation("Cancelled order deletion FAILED");
                 return Problem();
             }
         }
@@ -100,10 +111,12 @@ namespace StoreApp.API.Controllers
             try
             {
                 await _orderService.CompleteOrderById(id);
+                _logger.LogInformation("Order completion successful");
                 return Ok();
             }
             catch
             {
+                _logger.LogInformation("Order completion FAILED");
                 return Problem();
             }
         }
@@ -129,10 +142,12 @@ namespace StoreApp.API.Controllers
                 order.OrderId = newOrder.OrderId;
 
                 await _orderService.UpdateOrder(order);
+                _logger.LogInformation("Order update successful");
                 return Ok();
             }
             catch
             {
+                _logger.LogInformation("Order update FAILED");
                 return Problem();
             }
         }

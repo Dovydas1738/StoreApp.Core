@@ -7,7 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StoreApp.Core", "StoreApp.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StoreApp.Tests", "StoreApp.Tests\StoreApp.Tests.csproj", "{FCDEED31-C524-4A28-A7FE-DD2F47849248}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoreApp.API", "StoreApp.API\StoreApp.API.csproj", "{DBF9604C-4FDE-4EE3-8BFE-DA0870DF8326}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StoreApp.API", "StoreApp.API\StoreApp.API.csproj", "{DBF9604C-4FDE-4EE3-8BFE-DA0870DF8326}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A2773631-3389-45A9-AC5E-D17F8623741D}"
+	ProjectSection(SolutionItems) = preProject
+		README.txt = README.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

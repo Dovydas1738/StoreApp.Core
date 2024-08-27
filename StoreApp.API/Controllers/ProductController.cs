@@ -12,10 +12,12 @@ namespace StoreApp.API.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
+        private readonly ILogger<OrderController> _logger;
 
-        public ProductController(IProductService productService)
+        public ProductController(IProductService productService, ILogger<OrderController> logger)
         {
             _productService = productService;
+            _logger = logger;
         }
 
         [HttpPost("Add a product")]
@@ -26,10 +28,12 @@ namespace StoreApp.API.Controllers
                 Product product = new Product(newProduct.ProductName, newProduct.Price, newProduct.Category, newProduct.AmountInStorage);
 
                 await _productService.AddProduct(product);
+                _logger.LogInformation("Add order successful");
                 return Ok();
             }
             catch
             {
+                _logger.LogInformation("Add product FAILED");
                 return Problem();
             }
         }
@@ -40,10 +44,12 @@ namespace StoreApp.API.Controllers
             try
             {
                 var allProducts = await _productService.GetAllProducts();
+                _logger.LogInformation("Get all products successful");
                 return Ok(allProducts);
             }
             catch
             {
+                _logger.LogInformation("Get all products FAILED");
                 return Problem();
             }
         }
@@ -54,10 +60,12 @@ namespace StoreApp.API.Controllers
             try
             {
                 var product = await _productService.GetProductById(id);
+                _logger.LogInformation("Get product by id successful");
                 return Ok(product);
             }
             catch
             {
+                _logger.LogInformation("Get product by id FAILED");
                 return Problem();
             }
         }
@@ -68,10 +76,12 @@ namespace StoreApp.API.Controllers
             try
             {
                 await _productService.RemoveProductById(id);
+                _logger.LogInformation("Delete product by id successful");
                 return Ok();
             }
             catch
             {
+                _logger.LogInformation("Delete product by id FAILED");
                 return Problem();
             }
         }
@@ -82,10 +92,12 @@ namespace StoreApp.API.Controllers
             try
             {
                 await _productService.UpdateProduct(product);
+                _logger.LogInformation("Update product successful");
                 return Ok();
             }
             catch
             {
+                _logger.LogInformation("Update product FAILED");
                 return Problem();
             }
         }

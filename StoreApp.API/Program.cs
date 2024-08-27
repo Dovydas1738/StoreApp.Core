@@ -4,6 +4,7 @@ using StoreApp.Core.Contracts;
 using MongoDB.Driver;
 using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,13 @@ builder.Services.AddTransient<IUserRepository, UserRepository>(_ => new UserRepo
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<IOrderRepository, OrderRepository>(_ => new OrderRepository());
 builder.Services.AddTransient<IOrderService, OrderService>();
+
+
+var log = new LoggerConfiguration()
+    .WriteTo.File("C:\\Users\\dovis\\source\\repos\\StoreApp.Core\\StoreApp.Core\\Logs\\LOGS.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+Log.Logger = log;
 
 builder.Services.AddCors(options =>
 {
@@ -54,5 +62,5 @@ app.MapControllers();
 
 var cacheService = app.Services.GetRequiredService<ICacheService>();
 cacheService.DropCaches();
-
+Log.Information("Application started");
 app.Run();
