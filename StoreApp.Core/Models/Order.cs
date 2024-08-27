@@ -25,6 +25,7 @@ namespace StoreApp.Core.Models
         public Seller Seller { get; set; }
         public int Quantity { get; set; }
         public DateTime DateTime { get; set; }
+        public decimal OrderPrice { get; set; }
         public Order(Buyer buyer, Product product, int quantity, Seller seller)
         {
             BuyerId = buyer.BuyerId;
@@ -32,6 +33,7 @@ namespace StoreApp.Core.Models
             SellerId = seller.SellerId;
             Quantity = quantity;
             DateTime = DateTime.Now;
+            OrderPrice = product.Price * quantity;
         }
 
         public Order() { }
