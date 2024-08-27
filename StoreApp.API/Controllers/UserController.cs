@@ -2,6 +2,7 @@
 using StoreApp.Core.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using StoreApp.Core.Services;
+using StoreApp.API.Models;
 
 namespace StoreApp.API.Controllers
 {
@@ -19,10 +20,12 @@ namespace StoreApp.API.Controllers
         // Buyers
 
         [HttpPost("Add a buyer")]
-        public async Task<IActionResult> AddBuyer(Buyer buyer)
+        public async Task<IActionResult> AddBuyer(CreateBuyerRequest newBuyer)
         {
             try
             {
+                Buyer buyer = new Buyer(newBuyer.Name, newBuyer.Surname, newBuyer.Email, newBuyer.PhoneNumber, newBuyer.IsInLoyaltyProgram);
+
                 await _userService.AddBuyer(buyer);
                 return Ok();
             }
@@ -91,10 +94,12 @@ namespace StoreApp.API.Controllers
         // Sellers
 
         [HttpPost("Add a seller")]
-        public async Task<IActionResult> AddSeller(Seller seller)
+        public async Task<IActionResult> AddSeller(CreateSellerRequest newSeller)
         {
             try
             {
+                Seller seller = new Seller(newSeller.Name, newSeller.Surname, newSeller.Email, newSeller.PhoneNumber, newSeller.Position);
+
                 await _userService.AddSeller(seller);
                 return Ok();
             }

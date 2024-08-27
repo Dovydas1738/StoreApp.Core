@@ -94,20 +94,39 @@ namespace StoreApp.API.Controllers
             }
         }
 
-        [HttpPatch("Update an order")]
-        public async Task<IActionResult> UpdateOrder(CreateOrderRequest newOrder)
+        [HttpDelete("Complete order by Id")]
+        public async Task<IActionResult> CompleteOrderById(int id)
         {
             try
             {
-                Order order = new Order
-                {
-                    Buyer = new Buyer { BuyerId = newOrder.BuyerId },
-                    Product = new Product { ProductId = newOrder.ProductId },
-                    Quantity = newOrder.Quantity,
-                    DateTime = DateTime.Now,
-                    Seller = new Seller { SellerId = newOrder.SellerId },
-                };
+                await _orderService.CompleteOrderById(id);
+                return Ok();
+            }
+            catch
+            {
+                return Problem();
+            }
+        }
 
+
+        [HttpPatch("Update an order")]
+        public async Task<IActionResult> UpdateOrder(UpdateOrderRequest newOrder)
+        {
+            try
+            {
+
+                var buyer = await _userService.GetBuyerById(newOrder.BuyerId);
+                var product = await _productService.GetProductById(newOrder.ProductId);
+                var seller = await _userService.GetSellerById(newOrder.SellerId);
+
+                if (buyer == null || product == null || seller == null)
+                {
+                    return NotFound("One or more entities not found.");
+                }
+
+                var order = new Order(buyer, product, newOrder.Quantity, seller);
+
+                order.OrderId = newOrder.OrderId;
 
                 await _orderService.UpdateOrder(order);
                 return Ok();

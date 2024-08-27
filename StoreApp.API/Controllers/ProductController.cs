@@ -3,6 +3,7 @@ using StoreApp.Core.Models;
 using StoreApp.Core.Contracts;
 using StoreApp.Core.Repositories;
 using StoreApp.Core.Services;
+using StoreApp.API.Models;
 
 namespace StoreApp.API.Controllers
 {
@@ -18,10 +19,12 @@ namespace StoreApp.API.Controllers
         }
 
         [HttpPost("Add a product")]
-        public async Task<IActionResult> AddProduct(Product product)
+        public async Task<IActionResult> AddProduct(CreateProductRequest newProduct)
         {
             try
             {
+                Product product = new Product(newProduct.ProductName, newProduct.Price, newProduct.Category, newProduct.AmountInStorage);
+
                 await _productService.AddProduct(product);
                 return Ok();
             }

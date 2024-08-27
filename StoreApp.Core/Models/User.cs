@@ -12,7 +12,7 @@ namespace StoreApp.Core.Models
         public string Name { get; set; }
         public string Surname { get; set; }
         public string Email { get; set; }
-        public string PhoneNumber { get; set; } //gal su phone attribute daryt, pagalvot
+        public string PhoneNumber { get; set; }
 
         public User(string name, string surname, string email, string phoneNumber)
         {

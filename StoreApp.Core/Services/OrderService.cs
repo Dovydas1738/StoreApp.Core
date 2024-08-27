@@ -105,6 +105,21 @@ namespace StoreApp.Core.Services
 
         }
 
+        public async Task CompleteOrderById(int orderId)
+        {
+            Order foundOrderCache = await _mongoCacheRepository.GetOrderById(orderId);
+            Order foundOrder = await _orderRepository.GetOrderById(orderId);
+
+            if (foundOrder == null && foundOrderCache == null)
+            {
+                throw new Exception("No order found");
+            }
+
+            await _orderRepository.RemoveOrderById(orderId);
+            await _mongoCacheRepository.RemoveOrderById(orderId);
+        }
+
+
         public async Task UpdateOrder(Order order)
         {
             Order foundOrderCache = await _mongoCacheRepository.GetOrderById(order.OrderId);
@@ -116,7 +131,7 @@ namespace StoreApp.Core.Services
             }
 
             var allProducts = _productRepository.GetAllProducts().Result.ToList();
-            Product orderedProduct = allProducts.FirstOrDefault(p => p.ProductName == order.Product.ProductName);
+            Product orderedProduct = allProducts.FirstOrDefault(p => p.ProductId == order.ProductId);
 
             if (order.Quantity > orderedProduct.AmountInStorage + foundOrder.Quantity)
             {

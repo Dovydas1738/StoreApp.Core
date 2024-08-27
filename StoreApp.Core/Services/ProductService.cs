@@ -19,14 +19,6 @@ namespace StoreApp.Core.Services
 
         public async Task AddProduct(Product product)
         {
-            foreach (Product p in await _productRepository.GetAllProducts())
-            {
-                if (product.ProductName == p.ProductName)
-                {
-                    p.AmountInStorage += product.AmountInStorage;
-                    return;
-                }
-            }
             await _productRepository.AddProduct(product);
         }
 

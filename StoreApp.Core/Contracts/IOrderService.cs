@@ -14,5 +14,6 @@ namespace StoreApp.Core.Contracts
         Task<Order> GetOrderById(int orderId);
         Task<List<Order>> GetAllOrders();
         Task UpdateOrder(Order order);
+        Task CompleteOrderById(int orderId);
     }
 }
