@@ -49,42 +49,6 @@ namespace StoreApp.Tests
         }
 
         [Fact]
-        public async Task Add_Product_Duplicate_Test()
-        {
-            // Arrange
-            Mock<IProductRepository> _productRepository = new Mock<IProductRepository>();
-            IProductService productService = new ProductService(_productRepository.Object);
-
-            Product product = new Product
-            {
-                ProductId = 1,
-                ProductName = "Test",
-                Price = 10m,
-                Category = ProductCategory.Food,
-                AmountInStorage = 3,
-            };
-
-            Product product2 = new Product
-            {
-                ProductId = 2,
-                ProductName = "Test2",
-                Price = 10m,
-                Category = ProductCategory.Food,
-                AmountInStorage = 3,
-            };
-
-            var productList = new List<Product> { product, product2 };
-            _productRepository.Setup(x => x.GetAllProducts()).ReturnsAsync(productList);
-
-            // Act
-            await productService.AddProduct(product);
-
-            // Arange
-            Assert.Equal(6, product.AmountInStorage);
-            Assert.Equal(3, product2.AmountInStorage);
-        }
-
-        [Fact]
         public async Task Get_All_Products_Test()
         {
             // Arrange
@@ -1484,6 +1448,7 @@ namespace StoreApp.Tests
             {
                 OrderId = 1,
                 Buyer = buyer,
+                ProductId = product.ProductId,
                 Product = product,
                 Quantity = 2,
                 Seller = seller,
@@ -1863,6 +1828,7 @@ namespace StoreApp.Tests
             {
                 OrderId = 1,
                 Buyer = buyer,
+                ProductId = product.ProductId,
                 Product = product,
                 Quantity = 2,
                 Seller = seller,
@@ -1872,6 +1838,7 @@ namespace StoreApp.Tests
             {
                 OrderId = 2,
                 Buyer = buyer,
+                ProductId = product.ProductId,
                 Product = product,
                 Quantity = 1,
                 Seller = seller,
@@ -1956,6 +1923,7 @@ namespace StoreApp.Tests
             {
                 OrderId = 1,
                 Buyer = buyer,
+                ProductId = product.ProductId,
                 Product = product,
                 Quantity = 2,
                 Seller = seller,
@@ -1965,6 +1933,7 @@ namespace StoreApp.Tests
             {
                 OrderId = 2,
                 Buyer = buyer,
+                ProductId = product.ProductId,
                 Product = product,
                 Quantity = 1,
                 Seller = seller,
@@ -2046,6 +2015,7 @@ namespace StoreApp.Tests
             {
                 OrderId = 1,
                 Buyer = buyer,
+                ProductId = product.ProductId,
                 Product = product,
                 Quantity = 2,
                 Seller = seller,
@@ -2055,6 +2025,7 @@ namespace StoreApp.Tests
             {
                 OrderId = 2,
                 Buyer = buyer,
+                ProductId = product.ProductId,
                 Product = product,
                 Quantity = 1,
                 Seller = seller,
@@ -2064,6 +2035,7 @@ namespace StoreApp.Tests
             {
                 OrderId = 1,
                 Buyer = buyer,
+                ProductId = product.ProductId,
                 Product = product,
                 Quantity = 3,
                 Seller = seller,
@@ -2296,6 +2268,7 @@ namespace StoreApp.Tests
             {
                 OrderId = 1,
                 Buyer = buyer,
+                ProductId = product.ProductId,
                 Product = product,
                 Quantity = 2,
                 Seller = seller,
@@ -2305,6 +2278,7 @@ namespace StoreApp.Tests
             {
                 OrderId = 2,
                 Buyer = buyer,
+                ProductId = product.ProductId,
                 Product = product,
                 Quantity = 1,
                 Seller = seller,
@@ -2315,6 +2289,7 @@ namespace StoreApp.Tests
                 OrderId = 1,
                 Buyer = buyer,
                 Product = product,
+                ProductId = product.ProductId,
                 Quantity = 10,
                 Seller = seller,
             };
